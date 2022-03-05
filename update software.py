@@ -1,2 +1,2 @@
 import dload
-dload.save("https://github.com/darwinverso/tuhayka/archive/refs/heads/main.zip")
+dload.save("https://github.com/darwinverso/phone/archive/refs/heads/main.zip")
