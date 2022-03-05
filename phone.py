@@ -154,27 +154,7 @@ def get_reaction_by_link(link):
     return reaction
 
 def device_tasks(device):
-    tiktok = dict(
-        platformName=device["platformName"],
-        automationName=device["automationName"],
-        uiautomator2ServerLaunchTimeout='96000',
-        platformVersion=device["platformVersion"],
-        deviceName=device["deviceName"],
-        skipServerInstallation=True,
-        ignoreUnimportantViews=True,
-        skipDeviceInitialization=True,
-        deviceReadyTimeout='999999',
-        disableAndroidWatchers=True,
-        skipLogcatCapture=True,
-        adbExecTimeout='999999',
-        uiautomator2ServerInstallTimeout='999999',
-        disableWindowAnimation=True,
-        noReset=True,
-        udid=device["udid"],
-        appPackage='com.zhiliaoapp.musically.go',
-        appActivity='com.ss.android.ugc.aweme.main.homepage.MainActivity',
-        newCommandTimeout='96000',
-    )
+    global driver
     fb_apps = dict(
         platformName=device["platformName"],
         automationName=device["automationName"],
@@ -198,6 +178,27 @@ def device_tasks(device):
     apps = fetch_appName_by_deviceID(deviceID=device["deviceID"])
     for x in apps:
         if x["tiktok link"] == "yes":
+            tiktok = dict(
+                platformName=device["platformName"],
+                automationName=device["automationName"],
+                uiautomator2ServerLaunchTimeout='96000',
+                platformVersion=device["platformVersion"],
+                deviceName=device["deviceName"],
+                skipServerInstallation=True,
+                ignoreUnimportantViews=True,
+                skipDeviceInitialization=True,
+                deviceReadyTimeout='999999',
+                disableAndroidWatchers=True,
+                skipLogcatCapture=True,
+                adbExecTimeout='999999',
+                uiautomator2ServerInstallTimeout='999999',
+                disableWindowAnimation=True,
+                noReset=True,
+                udid=device["udid"],
+                appPackage='com.zhiliaoapp.musically.go',
+                appActivity='com.ss.android.ugc.aweme.main.homepage.MainActivity',
+                newCommandTimeout='96000',
+            )
             tiktok_driver = webdriver.Remote("http://localhost:4723/wd/hub", tiktok)
             if x["Heart"] == "yes":
                 for links in x["tiktok link"].split(" "):
