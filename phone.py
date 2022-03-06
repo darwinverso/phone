@@ -177,7 +177,7 @@ def device_tasks(device):
     )
     apps = fetch_appName_by_deviceID(deviceID=device["deviceID"])
     for x in apps:
-        if x["tiktok link"] == "yes":
+        if x["run tiktok"] == "yes":
             tiktok = dict(
                 platformName=device["platformName"],
                 automationName=device["automationName"],
@@ -415,4 +415,4 @@ if __name__ == "__main__":  # confirms that the code is under main function
     for i in phones_sheet:
         proc = Process(target=device_tasks, args=(i,))
         proc.start()
-        time.sleep(3)
+        time.sleep(10)
