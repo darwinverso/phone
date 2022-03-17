@@ -11,7 +11,7 @@ from past.builtins import xrange
 from multiprocessing import Process
 import random
 input_file = "phone.xlsx"
-sheet_names = ["Phones", "Apps", "Comments", "Timeline", "Friends", "Reactions", "Page", "Vote"]
+sheet_names = ["Phones", "Apps", "Comments", "Timeline", "Friends", "Reactions", "Page"]
 sheet = ""
 filter_variables_dict = ""
 all_data = []
@@ -82,9 +82,7 @@ class XlToDict:
 
         for sheet_name in sheet_names:
             sheet = workbook.sheet_by_name(sheet_name)
-
             all_data.append(convert_sheet_to_dict(sheet=sheet, filter_variables_dict=filter_variables_dict))
-
         return all_data
 
 
@@ -99,7 +97,6 @@ timeline_sheet = all_data[3]
 friends_sheet = all_data[4]
 reactions_sheet = all_data[5]
 page_sheets = all_data[6]
-vote_sheets = all_data[7]
 
 def fetch_random_comment_by_category(category=category, number=number):
     comment_list = []
@@ -155,26 +152,6 @@ def get_reaction_by_link(link):
 
 def device_tasks(device):
     global driver
-    fb_apps = dict(
-        platformName=device["platformName"],
-        automationName=device["automationName"],
-        uiautomator2ServerLaunchTimeout='96000',
-        platformVersion=device["platformVersion"],
-        deviceName=device["deviceName"],
-        disableWindowAnimation=True,
-        skipServerInstallation=True,
-        ignoreUnimportantViews=True,
-        skipDeviceInitialization=True,
-        disableAndroidWatchers=True,
-        deviceReadyTimeout='999999',
-        skipLogcatCapture=True,
-        adbExecTimeout='999999',
-        udid=device["udid"],
-        chromeOptions={"w3c": False},
-        browserName="Chrome",
-        chromedriverExecutable="C:/Users/USER/Desktop/phone/chromedriver/" + device["chromedriver"] + ".exe",
-        newCommandTimeout='96000',
-    )
     apps = fetch_appName_by_deviceID(deviceID=device["deviceID"])
     for x in apps:
         if x["run tiktok"] == "yes":
@@ -200,17 +177,36 @@ def device_tasks(device):
                 newCommandTimeout='96000',
             )
             tiktok_driver = webdriver.Remote("http://localhost:4723/wd/hub", tiktok)
-            if x["Heart"] == "yes":
-                for links in x["tiktok link"].split(" "):
-                    while True:
-                        try:
-                            tiktok_driver.get(links)
-                            WebDriverWait(tiktok_driver, 20).until(EC.visibility_of_element_located((By.ID, 'com.zhiliaoapp.musically.go:id/f9'))).click()
-                            print(x["deviceID"] + " " + x["profile tiktok"] + " " + "link" + " " + links + " " + "Heart Done")
-                            break
-                        except:
-                            device_tasks(device)
+            for links in x["tiktok link"].split(" "):
+                while True:
+                    try:
+                        tiktok_driver.get(links)
+                        WebDriverWait(tiktok_driver, 20).until(EC.visibility_of_element_located((By.ID, 'com.zhiliaoapp.musically.go:id/f9'))).click()
+                        print(x["deviceID"] + " " + x["profile tiktok"] + " " + "link" + " " + links + " " + "Heart Done")
+                        break
+                    except:
+                        device_tasks(device)
         if x["signup"] == "yes":
+            fb_apps = dict(
+                platformName=device["platformName"],
+                automationName=device["automationName"],
+                uiautomator2ServerLaunchTimeout='96000',
+                platformVersion=device["platformVersion"],
+                deviceName=device["deviceName"],
+                disableWindowAnimation=True,
+                skipServerInstallation=True,
+                ignoreUnimportantViews=True,
+                skipDeviceInitialization=True,
+                disableAndroidWatchers=True,
+                deviceReadyTimeout='999999',
+                skipLogcatCapture=True,
+                adbExecTimeout='999999',
+                udid=device["udid"],
+                chromeOptions={"w3c": False},
+                browserName="Chrome",
+                chromedriverExecutable="C:/Users/USER/Desktop/phone/chromedriver/" + device["chromedriver"] + ".exe",
+                newCommandTimeout='96000',
+            )
             driver = webdriver.Remote("http://localhost:4723/wd/hub", fb_apps)
             try:
                 subprocess.check_output("adb -s " + " " + device["udid"] + " " + "shell settings put global airplane_mode_on 1", shell=True)
@@ -291,28 +287,33 @@ def device_tasks(device):
                 except:
                     pass
                 pass
-            #vote
-            if x["vote"] == "yes":
-                for vote in vote_sheets:
-                    while True:
-                        try:
-                            driver.get(vote["Link"])
-                            WebDriverWait(driver, 6).until(EC.visibility_of_element_located((By.CSS_SELECTOR, '[title=' + '"' +vote["vote name"]+'"'))).click()
-                            break
-                        except:
-                            pass
 
         #     #Like Follow
             if x["Like Page"] == "yes":
                 for page in page_sheets:
                     while True:
                         try:
-                            driver.get(page["Live Link"])
+                            driver.get(page["Page Link"])
                             break
                         except:
                             pass
                     try:
                         WebDriverWait(driver, 6).until(EC.visibility_of_element_located((By.LINK_TEXT, 'Like'))).click()
+                        print(x["deviceID"] + " " + x["profile"] + " " + page["Live Link"] + " " + "Like Page Done")
+                    except:
+                        pass
+
+            if x["Follow Page"] == "yes":
+                for page in page_sheets:
+                    while True:
+                        try:
+                            driver.get(page["Page Link"])
+                            break
+                        except:
+                            pass
+                    try:
+                        WebDriverWait(driver, 6).until(EC.visibility_of_element_located((By.LINK_TEXT, 'Follow'))).click()
+                        print(x["deviceID"] + " " + x["profile"] + " " + page["Live Link"] + " " + "Follow Page Done")
                     except:
                         pass
 
@@ -332,6 +333,8 @@ def device_tasks(device):
                         break
                     print(x["deviceID"] + " " + x["profile"] + " " + x["comment link"].split(" ") + " " + "Comment Done")
                 except:
+                    if WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '[title="Your account is restricted right now"]'))):
+                        break
                     pass
 
             # share Post
@@ -382,6 +385,8 @@ def device_tasks(device):
                             break
                         print(x["deviceID"] + " " + x["profile"] + " " + x["links_to_react"].split(" ") + " " + reaction + " " + "React Done")
                     except:
+                        if WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '[title="Your account is restricted right now"]'))):
+                            break
                         pass
 
             if x["add friends"] == "yes":
