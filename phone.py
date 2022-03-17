@@ -204,7 +204,7 @@ def device_tasks(device):
                 udid=device["udid"],
                 chromeOptions={"w3c": False},
                 browserName="Chrome",
-                chromedriverExecutable="C:/Users/USER/Desktop/phone/chromedriver/" + device["chromedriver"] + ".exe",
+                chromedriverExecutable="C:/Users/user/Desktop/phone/main/phone-main/chromedriver/" + device["chromedriver"] + ".exe",
                 newCommandTimeout='96000',
             )
             driver = webdriver.Remote("http://localhost:4723/wd/hub", fb_apps)
