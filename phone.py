@@ -1,3 +1,4 @@
+from selenium.webdriver.chrome.options import Options
 import subprocess
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -151,9 +152,33 @@ def get_reaction_by_link(link):
     return reaction
 
 def device_tasks(device):
-    global driver
+    fb_apps = dict(
+        platformName=device["platformName"],
+        automationName=device["automationName"],
+        uiautomator2ServerLaunchTimeout='96000',
+        platformVersion=device["platformVersion"],
+        deviceName=device["deviceName"],
+        disableWindowAnimation=True,
+        skipServerInstallation=True,
+        ignoreUnimportantViews=True,
+        skipDeviceInitialization=True,
+        disableAndroidWatchers=True,
+        deviceReadyTimeout='999999',
+        skipLogcatCapture=True,
+        adbExecTimeout='999999',
+        udid=device["udid"],
+        chromeOptions={"w3c": False, "args": ['--disable-notifications']},
+        browserName="Chrome",
+        chromedriverExecutable="C:/Users/USER/Desktop/phone/chromedriver/" + device["chromedriver"] + ".exe",
+        newCommandTimeout='96000',
+    )
+    driver = webdriver.Remote("http://localhost:4723/wd/hub", fb_apps)
     apps = fetch_appName_by_deviceID(deviceID=device["deviceID"])
     for x in apps:
+        try:
+            subprocess.check_output("adb -s " + " " + device["udid"] + " " + "shell settings put global stay_on_while_plugged_in 3", shell=True)
+        except:
+            pass
         if x["run tiktok"] == "yes":
             tiktok = dict(
                 platformName=device["platformName"],
@@ -187,34 +212,13 @@ def device_tasks(device):
                     except:
                         device_tasks(device)
         if x["signup"] == "yes":
-            fb_apps = dict(
-                platformName=device["platformName"],
-                automationName=device["automationName"],
-                uiautomator2ServerLaunchTimeout='96000',
-                platformVersion=device["platformVersion"],
-                deviceName=device["deviceName"],
-                disableWindowAnimation=True,
-                skipServerInstallation=True,
-                ignoreUnimportantViews=True,
-                skipDeviceInitialization=True,
-                disableAndroidWatchers=True,
-                deviceReadyTimeout='999999',
-                skipLogcatCapture=True,
-                adbExecTimeout='999999',
-                udid=device["udid"],
-                chromeOptions={"w3c": False},
-                browserName="Chrome",
-                chromedriverExecutable="C:/Users/user/Desktop/phone/chromedriver/" + device["chromedriver"] + ".exe",
-                newCommandTimeout='96000',
-            )
-            driver = webdriver.Remote("http://localhost:4723/wd/hub", fb_apps)
             try:
                 subprocess.check_output("adb -s " + " " + device["udid"] + " " + "shell settings put global airplane_mode_on 1", shell=True)
             except:
                 pass
             try:
                 subprocess.check_output("adb -s " + " " + device["udid"] + " " + "shell am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true", shell=True)
-                time.sleep(10)
+                time.sleep(5)
             except:
                 pass
             try:
@@ -288,12 +292,27 @@ def device_tasks(device):
                     pass
                 pass
 
-        #     #Like Follow
-            if x["Like Page"] == "yes":
-                for page in page_sheets:
+            #watch live
+            if x["watch live"] == "yes":
+                for watch_live in x["live link"].split(" "):
                     while True:
                         try:
-                            driver.get(page["Page Link"])
+                            driver.get(watch_live)
+                        except:
+                            pass
+                        try:
+                            driver.set_page_load_timeout(10)
+                            time.sleep(10)
+                            break
+                        except:
+                            pass
+
+            #Like Follow
+            if x["Like Page"] == "yes":
+                for page in x["links_to_react"].split(" "):
+                    while True:
+                        try:
+                            driver.get(page)
                             break
                         except:
                             pass
@@ -303,19 +322,18 @@ def device_tasks(device):
                     except:
                         pass
 
-            if x["Follow Page"] == "yes":
-                for page in page_sheets:
-                    while True:
+                    if x["Follow Page"] == "yes":
+                        while True:
+                            try:
+                                driver.get(page["Page Link"])
+                                break
+                            except:
+                                pass
                         try:
-                            driver.get(page["Page Link"])
-                            break
+                            WebDriverWait(driver, 6).until(EC.visibility_of_element_located((By.LINK_TEXT, 'Follow'))).click()
+                            print(x["deviceID"] + " " + x["profile"] + " " + page["Page Link"] + " " + "Follow Page Done")
                         except:
                             pass
-                    try:
-                        WebDriverWait(driver, 6).until(EC.visibility_of_element_located((By.LINK_TEXT, 'Follow'))).click()
-                        print(x["deviceID"] + " " + x["profile"] + " " + page["Page Link"] + " " + "Follow Page Done")
-                    except:
-                        pass
 
             # comment live
             if x["Comment"] == "yes":
@@ -333,8 +351,11 @@ def device_tasks(device):
                         break
                     print(x["deviceID"] + " " + x["profile"] + " " + x["comment link"].split(" ") + " " + "Comment Done")
                 except:
-                    if WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '[title="Your account is restricted right now"]'))):
-                        break
+                    try:
+                        if WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '[title="Your account is restricted right now"]'))):
+                            break
+                    except:
+                        pass
                     pass
 
             # share Post
@@ -379,14 +400,15 @@ def device_tasks(device):
                     except:
                         pass
                     try:
-                        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.LINK_TEXT, reaction))).click()
-                        if WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '[title="Your account is restricted right now"]'))):
-                            print(x["deviceID"] + " " + x["profile"] + " " + "Your account is restricted right now")
-                            break
-                        print(x["deviceID"] + " " + x["profile"] + " " + x["links_to_react"].split(" ") + " " + reaction + " " + "React Done")
+                        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.LINK_TEXT, reaction))).click()
+                        print(x["deviceID"] + " " + x["profile"] + " " + o + " " + reaction + " " + "React Done")
                     except:
-                        if WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '[title="Your account is restricted right now"]'))):
-                            break
+                        pass
+                    try:
+                        WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.CSS_SELECTOR, '[title="Your account is restricted right now"]')))
+                        print(x["deviceID"] + " " + x["profile"] + " " + "Your account is restricted right now")
+                        break
+                    except:
                         pass
 
             if x["add friends"] == "yes":
@@ -412,7 +434,8 @@ def device_tasks(device):
                     except:
                         pass
         try:
-            driver.reset()
+            driver.delete_all_cookies()
+            driver.get('https://mbasic.facebook.com/login.php')
         except:
             pass
 
