@@ -300,37 +300,10 @@ def device_tasks(device):
                         WebDriverWait(driver, 6).until(EC.visibility_of_element_located((By.LINK_TEXT, 'Like'))).click()
                         print(x["deviceID"] + " " + x["profile"] + " " + like_page + " " + "Like Page Done")
                     except:
-                        pass
-
-            #Follow Page
-            if x["Follow Page"] == "yes":
-                for follow_page in x["Follow Page_Link"].split(" "):
-                    while True:
                         try:
-                            driver.get(follow_page)
-                            break
+                            WebDriverWait(driver, 6).until(EC.visibility_of_element_located((By.LINK_TEXT, 'Follow'))).click()
                         except:
                             pass
-                    try:
-                        WebDriverWait(driver, 6).until(EC.visibility_of_element_located((By.LINK_TEXT, 'Follow'))).click()
-                        print(x["deviceID"] + " " + x["profile"] + " " + follow_page + " " + "Follow Page Done")
-                    except:
-                        pass
-
-            #Join Group
-            if x["Join Group"] == "yes":
-                for join_group in x["Join Group_Link"].split(" "):
-                    while True:
-                        try:
-                            driver.get(join_group)
-                            break
-                        except:
-                            pass
-                    try:
-                        WebDriverWait(driver, 6).until(EC.visibility_of_element_located((By.CSS_SELECTOR, '[value="Join Group"]'))).click()
-                        print(x["deviceID"] + " " + x["profile"] + " " + join_group + " " + "Join Group Done")
-                    except:
-                        pass
 
             #comment
             if x["Comment"] == "yes":
